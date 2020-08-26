@@ -55,74 +55,71 @@ gq_block_race_vars = list(gq_block_race_dict.values())
 # ------------------------------------------------------------------------------
 
 def assign_gq(df, gq_race_age_df):
-	assert(df.pop_count.max()==1), 'oops; is this tabbed data? convert to person-data first'
+    assert(df.pop_count.max()==1), 'oops; is this tabbed data? convert to person-data first'
 
-	pop_total = df.pop_count.sum()
+    pop_total = df.pop_count.sum()
 
-	# subset to rows with sims in gq
-	gq = gq_race_age_df[(gq_race_age_df.pop_count > 0)]
+    # subset to rows with sims in gq
+    gq = gq_race_age_df[(gq_race_age_df.pop_count > 0)]
 
-	# make sure df index is ordered
-	df = df.reset_index(drop=True)
+    # make sure df index is ordered
+    df = df.reset_index(drop=True)
 
-	# add hhgq col if nonexistant
-	if 'hhgq' not in df.columns:
-		df['hhgq'] = 'hh' 
+    # add hhgq col if nonexistant
+    if 'hhgq' not in df.columns:
+        df['hhgq'] = 'hh' 
 
-	for typ in ['inst','noninst']:
-		if gq[gq.gq_type==typ].shape[0]>0:
-			for i, row in gq[gq.gq_type==typ].iterrows():
-				# grab settings
-				race = row.race
-				sex = row.sex_id
-				age_start = row.age_start
-				age_end = row.age_end
-				g = row.geoid
-				n = int(row.pop_count)
+    for typ in ['inst','noninst']:
+        if gq[gq.gq_type==typ].shape[0]>0:
+            for i, row in gq[gq.gq_type==typ].iterrows():
+                # grab settings
+                race = row.race
+                sex = row.sex_id
+                age_start = row.age_start
+                age_end = row.age_end
+                g = row.geoid
+                n = int(row.pop_count)
 
-				# filter base df
-				potential_sims = df[(df.race == race) & 
-				(df.sex_id == sex) &
-				(df.age_start >= age_start) & 
-				(df.age_end < age_end) & 
-				(df.geoid==g)].index.tolist()
+                # filter base df
+                potential_sims = df[(df.race == race) & 
+                (df.sex_id == sex) &
+                (df.age_start >= age_start) & 
+                (df.age_end < age_end) & 
+                (df.geoid==g)].index.tolist()
 
-				# choose randomly
-				gq_sims = np.random.choice(potential_sims, size = n, replace = False)
+                # choose randomly
+                gq_sims = np.random.choice(potential_sims, size = n, replace = False)
 
-				# assign gq status
-				df.loc[df.index.isin(gq_sims),'hhgq'] = typ
+                # assign gq status
+                df.loc[df.index.isin(gq_sims),'hhgq'] = typ
 
-	assert(df.pop_count.sum()==pop_total), "Oops; you've lost or gained sims"
+    assert(df.pop_count.sum()==pop_total), "Oops; you've lost or gained sims"
 
-	return df
-
+    return df
 
 def pull_block_race(state, county, tract, path):
-	gq_race_df = pd.read_csv(input_dir + path, usecols = location_cols + gq_block_race_vars)
-	gq_race_df = gq_race_df[(gq_race_df.BLOCK.notna()) & (gq_race_df.BLOCK!=' ')]
-
+    gq_race_df = pd.read_csv(input_dir + path, usecols = location_cols + gq_block_race_vars)
+    gq_race_df = gq_race_df[(gq_race_df.BLOCK.notna()) & (gq_race_df.BLOCK!=' ')]
 
     gq_race_df = gq_race_df[(gq_race_df.STATE==float(state)) & (gq_race_df.COUNTY==float(county))]
     if tract!=None:
-    	gq_race_df = gq_race_df[(gq_race_df.TRACT==float(tract))]
+        gq_race_df = gq_race_df[(gq_race_df.TRACT==float(tract))]
 
-	gq_race_df = gq_race_df.melt(id_vars = location_cols, value_vars = gq_block_race_vars)
+    gq_race_df = gq_race_df.melt(id_vars = location_cols, value_vars = gq_block_race_vars)
 
-	decennial_race_dict = {'A':'white','B':'black','C':'aian','D':'asian','E':'nhpi','F':'otherrace','G':'multi'}
-	decennial_gq_dict = {'26':'gq_all','27':'inst','28':'noninst'}
+    decennial_race_dict = {'A':'white','B':'black','C':'aian','D':'asian','E':'nhpi','F':'otherrace','G':'multi'}
+    decennial_gq_dict = {'26':'gq_all','27':'inst','28':'noninst'}
 
-	gq_race_df['gq_type'] = gq_race_df.variable.str[-2:].map(decennial_gq_dict)
-	gq_race_df['race'] = gq_race_df.variable.str[4:5].map(decennial_race_dict)
+    gq_race_df['gq_type'] = gq_race_df.variable.str[-2:].map(decennial_gq_dict)
+    gq_race_df['race'] = gq_race_df.variable.str[4:5].map(decennial_race_dict)
 
-	gq_race_df = add_geoid(gq_race_df)
-	gq_race_df['tract_geoid'] = gq_race_df.geoid.str[:11]
-	gq_race_df = gq_race_df.rename(columns={'value':'pop_count'})
+    gq_race_df = add_geoid(gq_race_df)
+    gq_race_df['tract_geoid'] = gq_race_df.geoid.str[:11]
+    gq_race_df = gq_race_df.rename(columns={'value':'pop_count'})
 
-	return gq_race_df
+    return gq_race_df
 
 def pull_sex_age_tract(state, county, tract, path):
-    id_vars = ['STATE','COUNTY']
     gq_sex_age_df = pd.read_csv(input_dir + path, usecols = location_cols + ['SUMLEV'] + gq_tract_sex_age_vars)
     gq_sex_age_df = gq_sex_age_df[(gq_sex_age_df.SUMLEV==140) &
                                   (gq_sex_age_df.TRACT.notna()) & 
@@ -131,12 +128,10 @@ def pull_sex_age_tract(state, county, tract, path):
 
     gq_sex_age_df = gq_sex_age_df[(gq_sex_age_df.STATE==float(state)) &
                                   (gq_sex_age_df.COUNTY==float(county))]
-
     if tract!=None:
-        id_vars = id_vars + ['TRACT']
         gq_sex_age_df = gq_sex_age_df[(gq_sex_age_df.TRACT==float(tract))]
 
-    gq_sex_age_df = gq_sex_age_df.melt(id_vars = id_vars, value_vars = gq_tract_sex_age_vars)
+    gq_sex_age_df = gq_sex_age_df.melt(id_vars = ['STATE','COUNTY','TRACT'], value_vars = gq_tract_sex_age_vars)
 
     gq_sex_age_df['sex_id'] = gq_sex_age_df.variable.map(gq_tract_sex_age_dict).str[0]
     gq_sex_age_df[gq_sex_age_df.sex_id!='t']
