@@ -109,10 +109,10 @@ def label_census_age_sex(input_df):
 
 	# map census var names into something readable
 	age_start = [0,5,10,15,18,20,21,22,25,30,35,40,45,50,55,60,62,65,67,70,75,80,85]
-	age_end = [i-1 for i in age_start[1:]] + [120]
+	age_end = [i-1 for i in age_start[1:]] + [115]
 
 	age_start = [0] + age_start
-	age_end = [120] + age_end
+	age_end = [115] + age_end
 
 	age_start_dict = {}
 	age_end_dict = {}
