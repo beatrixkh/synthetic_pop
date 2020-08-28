@@ -9,7 +9,6 @@ from add_gq import *
 
 def main(state, county, tract):
 
-	tract = None
 	fips_codes = {1: 'AL', 2: 'AK', 4: 'AR', 5: 'AZ', 6: 'CA', 
 	8: 'CO', 9: 'CT', 10: 'DE', 11: 'DC', 12: 'FL', 13: 'GA', 
 	15: 'HI', 16: 'ID', 17: 'IL', 18: 'IN', 19: 'IA', 20: 'KS', 
