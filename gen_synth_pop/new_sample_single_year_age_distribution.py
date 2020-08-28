@@ -10,59 +10,23 @@ import pandas as pd, numpy as np
 
 def main(state, county, tract):
 
-	state_codes = {1: "AL",
-                   2: "AK",
-                   4: "AR",
-                   5: "AZ",
-                   6: "CA",
-                   8: "CO",
-                   9: "CT",
-                   10: "DE",
-                   11: "DC",
-                   12: "FL",
-                   13: "GA",
-                   15: "HI",
-                   16: "ID",
-                   17: "IL",
-                   18: "IN",
-                   19: "IA",
-               	   20: "KS",
-                   21: "KY",
-                   22: "LA",
-                   23: "ME",
-                   24: "MD",
-                   25: "MA",
-                   26: "MI",
-                   27: "MN",
-                   28: "MS",
-                   29: "MO",
-                   30: "MT",
-                   31: "NE",
-                   32: "NV",
-                   33: "NH",
-                   34: "NJ",
-                   35: "NM",
-                   36: "NY",
-                   37: "NC",
-                   38: "ND",
-                   39: "OH",
-                   40: "OK",
-                   41: "OR",
-                   42: "PA",
-                   44: "RI",
-                   45: "SC",
-                   46: "SD",
-                   47: "TN",
-                   48: "TX",
-                   49: "UT",
-                   50: "VT",
-                   51: "VA",
-                   53: "WA",
-                   54: "WV",
-                   55: "WI",
-                   56: "WY",
-                   72: "PR"}
+
+    state_codes = {1: 'AL', 2: 'AK', 4: 'AR', 5: 'AZ', 6: 'CA', 
+    8: 'CO', 9: 'CT', 10: 'DE', 11: 'DC', 12: 'FL', 13: 'GA', 
+    15: 'HI', 16: 'ID', 17: 'IL', 18: 'IN', 19: 'IA', 20: 'KS', 
+    21: 'KY', 22: 'LA', 23: 'ME', 24: 'MD', 25: 'MA', 26: 'MI', 
+    27: 'MN', 28: 'MS', 29: 'MO', 30: 'MT', 31: 'NE', 32: 'NV', 
+    33: 'NH', 34: 'NJ', 35: 'NM', 36: 'NY', 37: 'NC', 38: 'ND', 
+    39: 'OH', 40: 'OK', 41: 'OR', 42: 'PA', 44: 'RI', 45: 'SC', 
+    46: 'SD', 47: 'TN', 48: 'TX', 49: 'UT', 50: 'VT', 51: 'VA', 
+    53: 'WA', 54: 'WV', 55: 'WI', 56: 'WY', 72: 'PR'}
+
     state_name = state_codes[int(state)].lower()
+
+    data_dir = '/ihme/scratch/users/beatrixh/underlying_pop/best/{}/'.format(state_name)
+    filename = 'state{}_county{}_tract{}.csv'.format(state,county,tract)
+
+    read_path = data_dir + filename
 
 	# pull in block/5 year age/sex/7-bucket race/ethnicity/hhgq structure
 	# read_path = '/share/temp/sgeoutput/beatrixh/de_test_8_21.csv'
@@ -113,8 +77,8 @@ if __name__=="__main__":
     import argparse
     import cProfile
     parser = argparse.ArgumentParser()
-    parser.add_argument("state", help="", type=str)
+    parser.add_argument("state", help="", type=int)
     parser.add_argument("county", help="", type=str)
-    parser.add_argument("tract", help="", type=int)
+    parser.add_argument("tract", help="", type=str)
     args = parser.parse_args()
     main(args.state, args.county, args.tract)
