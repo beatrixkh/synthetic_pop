@@ -55,47 +55,48 @@ gq_block_race_vars = list(gq_block_race_dict.values())
 # ------------------------------------------------------------------------------
 
 def assign_gq(df, gq_race_age_df):
-    assert(df.pop_count.max()==1), 'oops; is this tabbed data? convert to person-data first'
+  assert(df.pop_count.max()==1), 'oops; is this tabbed data? convert to person-data first'
 
-    pop_total = df.pop_count.sum()
+  pop_total = df.pop_count.sum()
 
-    # subset to rows with sims in gq
-    gq = gq_race_age_df[(gq_race_age_df.pop_count > 0)]
+  # subset to rows with sims in gq
+  gq = gq_race_age_df[(gq_race_age_df.pop_count > 0)]
 
-    # make sure df index is ordered
-    df = df.reset_index(drop=True)
+  # make sure df index is ordered
+  df = df.reset_index(drop=True)
 
-    # add hhgq col if nonexistant
-    if 'hhgq' not in df.columns:
-        df['hhgq'] = 'hh' 
+  # add hhgq col if nonexistant
+  if 'hhgq' not in df.columns:
+      df['hhgq'] = 'hh' 
 
-    for typ in ['inst','noninst']:
-        if gq[gq.gq_type==typ].shape[0]>0:
-            for i, row in gq[gq.gq_type==typ].iterrows():
-                # grab settings
-                race = row.race
-                sex = row.sex_id
-                age_start = row.age_start
-                age_end = row.age_end
-                g = row.geoid
-                n = int(row.pop_count)
+  for typ in ['inst','noninst']:
+    gq_df = gq[gq.gq_type==typ].reset_index(drop=True)
+    if gq_df.shape[0]>0:
+      for i, row in gq_df.iterrows():
+          # grab settings
+          race = row.race
+          sex = row.sex_id
+          age_start = row.age_start
+          age_end = row.age_end
+          g = row.geoid
+          n = int(row.pop_count)
 
-                # filter base df
-                potential_sims = df[(df.race == race) & 
-                (df.sex_id == sex) &
-                (df.age_start >= age_start) & 
-                (df.age_end < age_end) & 
-                (df.geoid==g)].index.tolist()
+          # filter base df
+          potential_sims = df[(df.race == race) & 
+          (df.sex_id == sex) &
+          (df.age_start >= age_start) & 
+          (df.age_end <= age_end) & 
+          (df.geoid==g)].index.tolist()
 
-                # choose randomly
-                gq_sims = np.random.choice(potential_sims, size = n, replace = False)
+          # choose randomly
+          gq_sims = np.random.choice(potential_sims, size = n, replace = False)
 
-                # assign gq status
-                df.loc[df.index.isin(gq_sims),'hhgq'] = typ
+          # assign gq status
+          df.loc[df.index.isin(gq_sims),'hhgq'] = typ
 
-    assert(df.pop_count.sum()==pop_total), "Oops; you've lost or gained sims"
+  assert(df.pop_count.sum()==pop_total), "Oops; you've lost or gained sims"
 
-    return df
+  return df
 
 def pull_block_race(state, county, tract, path):
     gq_race_df = pd.read_csv(input_dir + path, usecols = location_cols + gq_block_race_vars)
