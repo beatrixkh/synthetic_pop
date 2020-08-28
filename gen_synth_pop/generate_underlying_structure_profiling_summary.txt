@@ -1,0 +1,80 @@
+Timer unit: 1e-06 s
+
+Total time: 880.997 s
+File: /ihme/code/beatrixh/microsim_2020/census_2020/synthetic_pop/gen_synth_pop/generate_underlying_structure.py
+Function: main at line 10
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    10                                           def main(state, county, tract):
+    11                                           
+    12         1         13.0     13.0      0.0  	fips_codes = {1: 'AL', 2: 'AK', 4: 'AR', 5: 'AZ', 6: 'CA', 
+    13         1          6.0      6.0      0.0  	8: 'CO', 9: 'CT', 10: 'DE', 11: 'DC', 12: 'FL', 13: 'GA', 
+    14         1          5.0      5.0      0.0  	15: 'HI', 16: 'ID', 17: 'IL', 18: 'IN', 19: 'IA', 20: 'KS', 
+    15         1          5.0      5.0      0.0  	21: 'KY', 22: 'LA', 23: 'ME', 24: 'MD', 25: 'MA', 26: 'MI', 
+    16         1          5.0      5.0      0.0  	27: 'MN', 28: 'MS', 29: 'MO', 30: 'MT', 31: 'NE', 32: 'NV', 
+    17         1          4.0      4.0      0.0  	33: 'NH', 34: 'NJ', 35: 'NM', 36: 'NY', 37: 'NC', 38: 'ND', 
+    18         1         11.0     11.0      0.0  	39: 'OH', 40: 'OK', 41: 'OR', 42: 'PA', 44: 'RI', 45: 'SC', 
+    19         1          8.0      8.0      0.0  	46: 'SD', 47: 'TN', 48: 'TX', 49: 'UT', 50: 'VT', 51: 'VA', 
+    20         1         12.0     12.0      0.0  	53: 'WA', 54: 'WV', 55: 'WI', 56: 'WY', 72: 'PR'}
+    21                                           
+    22         1         10.0     10.0      0.0  	state_name = fips_codes[int(state)].lower()
+    23         1          9.0      9.0      0.0  	path = 'decennial_census_2010/{}_decennial_2010/{}2010ur1_all_vars.CSV'.format(state_name, state_name)
+    24                                           
+    25                                           	#pull underlying geo/race/age/sex structure
+    26         1  254691630.0 254691630.0     28.9  	df = pull_geo_race_age_sex(path, state, county, tract)
+    27                                           
+    28                                           	## add ethnicity -----------------------------------------------------------
+    29                                           
+    30                                           	#pull joint race/ethnicity distribution
+    31         1   87502024.0 87502024.0      9.9  	race_ethnicity_props_df = pull_race_ethnicity(state, county, tract, path)
+    32                                           
+    33                                           	#pull joint ethnicity/age/sex distribution
+    34         1  113152595.0 113152595.0     12.8  	hispanic_age_sex =  pull_age_sex_ethnicity(state, county, tract, path)
+    35                                           
+    36                                           	# optimize to get joint race-ethnicity-age-sex
+    37         1  196386836.0 196386836.0     22.3  	hispanic_age_sex_race = assign_hispanic(df, race_ethnicity_props_df, hispanic_age_sex)
+    38                                           
+    39                                           	## subtract hispanic out from (hispanic+non-hispanic)
+    40         1     153705.0 153705.0      0.0  	df_with_ethnicity = subtract_hispanic_from_all(df, hispanic_age_sex_race)
+    41                                           
+    42                                           	## add gq structure --------------------------------------------------------
+    43                                           
+    44                                           	# pull gq-race distribution
+    45         1  100696657.0 100696657.0     11.4  	gq_race_df = pull_block_race(state, county, tract, path)
+    46                                           
+    47                                           	# pull gq-sex/age distribution
+    48         1  108615612.0 108615612.0     12.3  	gq_sex_age_df = pull_sex_age_tract(state, county, tract, path)
+    49                                           
+    50                                           	# optimize to get joint race-sex/age-gq distribution
+    51         1   19588119.0 19588119.0      2.2  	gq_race_age_df = find_gq(df, gq_race_df, gq_sex_age_df)
+    52                                           
+    53                                           	# assign gq to extant structure
+    54         1      54690.0  54690.0      0.0  	df_final = assign_gq(df_with_ethnicity, gq_race_age_df)
+    55                                           
+    56                                           	## format and save ---------------------------------------------------------
+    57         1          5.0      5.0      0.0  	race_label_map = {'multi':'multi','white':'racwht','asian':'racasn','black':'racblk','otherrace':'racsor','aian':'racaian','nhpi':'racnhpi'}
+    58         1       2456.0   2456.0      0.0  	df_final["race"] = df_final.race.map(race_label_map)
+    59                                           
+    60                                           	# save to csv
+    61                                           	# first try to save to best dir
+    62         1          3.0      3.0      0.0  	best_dir = '/ihme/scratch/users/beatrixh/underlying_pop/best/'
+    63         1          7.0      7.0      0.0  	state_dir = best_dir  + state_name
+    64         3          9.0      3.0      0.0  	for d in [best_dir, state_dir]:
+    65         2      20153.0  10076.5      0.0  	    if not os.path.exists(d):
+    66                                           	        os.mkdir(d)
+    67         1          2.0      2.0      0.0  	if tract==None:
+    68                                           		save_name = '/state{}_county{}.csv'.format(state,county)
+    69                                           	else:
+    70         1          5.0      5.0      0.0  		save_name = '/state{}_county{}_tract{}.csv'.format(state,county,tract)
+    71                                           
+    72                                           	# if this file doesn't already exist in best dir, save. otherwise, save to date-specific dir
+    73         1       1095.0   1095.0      0.0  	if not os.path.exists(state_dir + save_name):
+    74         1     131626.0 131626.0      0.0  		df_final.to_csv(state_dir + save_name, index=False)
+    75                                           	else:
+    76                                           		today = datetime.date.today()
+    77                                           		today_dir = '/ihme/scratch/users/beatrixh/underlying_pop/' + str(today) + '/'
+    78                                           		state_dir = today_dir + '/' + state_name
+    79                                           		for d in [today_dir, state_dir]:
+    80                                           			os.mkdir(d)
+    81                                           		df_final.to_csv(state_dir + save_name, index = False)
