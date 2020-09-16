@@ -28,19 +28,44 @@ def main(state, county, tract):
 
     read_path = data_dir + filename
 
-	# pull in block/5 year age/sex/7-bucket race/ethnicity/hhgq structure
-	# read_path = '/share/temp/sgeoutput/beatrixh/de_test_8_21.csv'
-	input_df = pd.read_csv(read_path)
+    # pull in block/5 year age/sex/7-bucket race/ethnicity/hhgq structure
+    # read_path = '/share/temp/sgeoutput/beatrixh/de_test_8_21.csv'
+    print("reading input")
+    input_df = pd.read_csv(read_path)
 
-	# get joint distribution from ACS
-	acs_data = load_incoming_data(state_name)
-	all_race_age_distr = clean_acs(acs_data, races = 'all', years = acs_data.year.unique().tolist())
-	all_race_age_distr = format_acs(all_race_age_distr)
+    # convert geoid back to str
+    input_df = add_geoid(input_df)
+    input_df.geoid = input_df.geoid.astype(str)
 
-	# sample detail from ACS to fill in specific age/race/relp
-	single_years_df = generate_single_year_df(input_df, all_race_age_distr)
+    # make sure geoids are all block-level, correctly formatted
+    assert(np.unique([len(i) for i in input_df.geoid]).sum()==15), "Some of the geoids aren't length 15"
 
-	# add back in location_cols
+    # grab some invariants to check against
+    male_total_check = input_df[input_df.sex_id==1].pop_count.sum()
+    fem_total_check = input_df[input_df.sex_id==2].pop_count.sum()
+    unique_vals_invar1 = input_df.geoid.nunique() * input_df.sex_id.nunique() * input_df.hispanic.nunique() * input_df.hhgq.nunique()
+
+    # get joint distribution from ACS
+    acs_data = load_incoming_data(state_name)
+    all_race_age_distr = clean_acs(acs_data, races = 'all', years = acs_data.year.unique().tolist())
+    all_race_age_distr = format_acs(all_race_age_distr)
+
+    print("gen data")
+    # sample detail from ACS to fill in specifqstatic age/race/relp
+    single_years_df = generate_single_year_df(input_df, all_race_age_distr)
+
+    ## checks ------------------------------------------------------------------
+
+    assert(single_years_df[single_years_df.sex_id==1].pweight.sum()==male_total_check), "male total didn't stay constant"
+    assert(single_years_df[single_years_df.sex_id==2].pweight.sum()==fem_total_check), "fem total didn't stay constant"
+
+    check_unique_vals_invar1 = single_years_df.geoid.nunique() * single_years_df.sex_id.nunique() * single_years_df.hispanic.nunique() * single_years_df.hhgq.nunique()
+    assert(check_unique_vals_invar1==unique_vals_invar1), "nunique vals of some var (geoid, sex, hispanic, hhgq) is off"
+
+
+    ## format and save ---------------------------------------------------------
+
+    # add back in location_colss
     single_years_df['state'] = single_years_df.geoid.str[:2]
     single_years_df['county'] = single_years_df.geoid.str[2:5]
     single_years_df['tract'] = single_years_df.geoid.str[5:11]
@@ -49,8 +74,11 @@ def main(state, county, tract):
     #final order
     final_cols = ['state','county','tract','block','geoid','age','sex_id','relationship','hispanic', 
     'racaian', 'racasn', 'racblk', 'racnhpi', 'racsor', 'racwht', 'pweight']
+    final_cols = ['geoid','age','sex_id','relationship','hispanic', 
+    'racaian', 'racasn', 'racblk', 'racnhpi', 'racsor', 'racwht', 'pweight']
     output = single_years_df.filter(items=final_cols)
 
+    print("saving")
     # save to csv
     # first try to save to best dir
     best_dir = '/ihme/scratch/users/beatrixh/synthetic_pop/pyomo/best/'
@@ -82,3 +110,5 @@ if __name__=="__main__":
     parser.add_argument("tract", help="", type=str)
     args = parser.parse_args()
     main(args.state, args.county, args.tract)
+
+# qsub -P proj_cost_effect -o /share/temp/sgeoutput/beatrixh/output -e /share/temp/sgeoutput/beatrixh/errors -N pls_work_ca6_001_428302_single_year -l fthread=1 -l m_mem_free=10G -q all.q -l h_rt=01:00:00 -V /ihme/code/beatrixh/microsim_2020/scripts/pyomo_shell.sh /ihme/code/beatrixh/microsim_2020/census_2020/synthetic_pop/gen_synth_pop/new_sample_single_year_age_distribution.py 6 001 428302
