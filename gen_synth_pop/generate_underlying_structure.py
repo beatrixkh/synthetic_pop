@@ -1,4 +1,5 @@
 import os
+import datetime
 
 import numpy as np, pandas as pd
 from pyomo.environ import *
@@ -24,6 +25,12 @@ def main(state, county, tract):
 
 	#pull underlying geo/race/age/sex structure
 	df = pull_geo_race_age_sex(path, state, county, tract)
+
+	#grab some constants to check against
+	male_check, fem_check = df[df.sex_id==1].pop_count.sum(), df[df.sex_id==2].pop_count.sum()
+
+	#make sure positive int pop
+	assert(male_check + fem_check > 0), "This location has population zero"
 
 	## add ethnicity -----------------------------------------------------------
 
@@ -52,6 +59,11 @@ def main(state, county, tract):
 
 	# assign gq to extant structure
 	df_final = assign_gq(df_with_ethnicity, gq_race_age_df)
+
+	## checks ------------------------------------------------------------------
+
+	assert(int(df_final[df_final.sex_id==1].pop_count.sum())==male_check), "male pop count didn't stay constant"
+	assert(int(df_final[df_final.sex_id==2].pop_count.sum())==fem_check), "female pop count didn't stay constant"
 
 	## format and save ---------------------------------------------------------
 	race_label_map = {'multi':'multi','white':'racwht','asian':'racasn','black':'racblk','otherrace':'racsor','aian':'racaian','nhpi':'racnhpi'}
@@ -186,77 +198,75 @@ def subtract_hispanic_from_all(df, hispanic_age_sex_race):
 	return df_final.reset_index(drop=True)
 
 
-
 def assign_hispanic(df, race_ethnicity_props_df, hispanic_age_sex):
-	model = ConcreteModel()
-	model.x = Var(within=NonNegativeIntegers)
-	model.obj = Objective(expr = 0)
+    
+    # define opt fn
+    def run_opt(k):
+        model = ConcreteModel()
+        model.x = Var(races_hispanic, sex_ages, within=NonNegativeIntegers)
 
-	races_hispanic = hispanic_race_labels[1:]
-	races = df.race.unique().tolist()
-	sex_ages = hispanic_age_sex.sex_ages.unique().tolist()
-	census_blocks = hispanic_age_sex.geoid.unique().tolist()
+        # require that for each ethnicity, sex/ages sum correctly
+        model.correct_race_hist = ConstraintList()
 
-	model = ConcreteModel()
-	model.x = Var(races_hispanic, sex_ages, census_blocks, within=NonNegativeIntegers)
+        for i in races_hispanic:
+            count = race_ethnicity_props_df[(race_ethnicity_props_df.geoid==k) & (race_ethnicity_props_df.race_ethnicity==i)].pop_count.values[0]
+            model.correct_race_hist.add(
+                sum(model.x[i,j] for j in sex_ages) == count
+                )
+
+        # require that for each block and sex/age, race/ethnicity sum correctly
+        model.correct_sex_age_hist = ConstraintList()
+
+        for j in sex_ages:
+            count = hispanic_age_sex[(hispanic_age_sex.geoid==k) & (hispanic_age_sex.sex_ages==j)].pop_count.values[0]
+            model.correct_sex_age_hist.add(
+                sum(model.x[i,j] for i in races_hispanic) == count
+                )
 
 
-	# require that for each block and ethnicity, sex/ages sum correctly
-	model.correct_race_hist = ConstraintList()
-	for k in census_blocks:
-		for i in races_hispanic:
-			count = race_ethnicity_props_df[(race_ethnicity_props_df.geoid==k) & (race_ethnicity_props_df.race_ethnicity==i)].pop_count.values[0]
-			model.correct_race_hist.add(
-				sum(model.x[i,j,k] for j in sex_ages) == count
-				)
+        # require that for each block, sex/age, (hispanic) <= (hispanic + non-hispanic)
+        model.pop_count_ceiling = ConstraintList()
+        for j in sex_ages:
+            for i in races_hispanic:
+                ceil = df[(df.race==i[:-9]) & (df.sex_age==j) & (df.geoid==k)].pop_count.values[0]
+                model.pop_count_ceiling.add(
+                    model.x[i,j] <= ceil
+                )
 
+        model.obj = Objective(expr = 0)
+        opt = SolverFactory('cbc')  # installed from conda https://anaconda.org/conda-forge/coincbc
+        results = opt.solve(model)
+        return model
+    
+    # get vars to loop thru
+    census_blocks = df.geoid.unique()
+    races_hispanic = hispanic_race_labels[1:]
+    races = df.race.unique().tolist()
+    sex_ages = hispanic_age_sex.sex_ages.unique().tolist()
+    
+    # initialize df
+    hispanic_age_sex_race = pd.DataFrame()
+    
+    #solve for each block
+    for k in census_blocks:
+        X_0 = np.zeros((len(races_hispanic), len(sex_ages)))
+        if race_ethnicity_props_df[race_ethnicity_props_df.geoid==k].pop_count.sum() > 0:
+            model = run_opt(k)
+            for i in range(len(races_hispanic)):
+                for j in range(len(sex_ages)):
+                    X_0[i,j] = value(model.x[races_hispanic[i],sex_ages[j]])
 
-	# require that for each block and sex/age, race/ethnicity sum correctly
-	model.correct_sex_age_hist = ConstraintList()
-	for k in census_blocks:
-		for j in sex_ages:
-			count = hispanic_age_sex[(hispanic_age_sex.geoid==k) & (hispanic_age_sex.sex_ages==j)].pop_count.values[0]
-			model.correct_sex_age_hist.add(
-				sum(model.x[i,j,k] for i in races_hispanic) == count
-				)
+        df_0 = pd.DataFrame(X_0, index = races_hispanic, columns = sex_ages).reset_index().melt(id_vars = 'index', value_vars = sex_ages)
+        df_0['geoid'] = k
+        hispanic_age_sex_race = hispanic_age_sex_race.append(df_0)
+        
+    
+    relabel = {'index':'race','variable':'sex_age','value':'hispanic_pop_count'}
+    hispanic_age_sex_race.rename(columns=relabel, inplace=True)
+    hispanic_age_sex_race['race'] = hispanic_age_sex_race.race.str[:-9]
 
-	# require that for each block, sex/age, (hispanic) <= (hispanic + non-hispanic)
-	model.pop_count_ceiling = ConstraintList()
-	for k in census_blocks:
-		for j in sex_ages:
-			for i in races_hispanic:
-				ceil = df[(df.race==i[:-9]) & (df.sex_age==j) & (df.geoid==k)].pop_count.values[0]
-				model.pop_count_ceiling.add(
-					model.x[i,j,k] <= ceil
-					)
-	# solve
-	model.obj = Objective(expr = 0)
-	opt = SolverFactory('cbc')  # choose a solver, install from conda https://anaconda.org/conda-forge/coincbc
-	results = opt.solve(model)
+    return hispanic_age_sex_race
 
-	# pull results into an array
-	X = np.zeros((len(races_hispanic), len(sex_ages), len(census_blocks)))
-	for i in range(len(races_hispanic)):
-		for j in range(len(sex_ages)):
-			for k in range(len(census_blocks)):
-				X[i,j,k] = value(model.x[races_hispanic[i],sex_ages[j],census_blocks[k]])
-
-	# move into a 2D dataframe
-	hispanic_age_sex_race = pd.DataFrame()
-	for k in census_blocks:
-		X_0 = np.zeros((len(races_hispanic), len(sex_ages)))
-		for i in range(len(races_hispanic)):
-			for j in range(len(sex_ages)):
-				X_0[i,j] = value(model.x[races_hispanic[i],sex_ages[j],k])
-		df_0 = pd.DataFrame(X_0, index = races_hispanic, columns = sex_ages).reset_index().melt(id_vars = 'index', value_vars = sex_ages)
-		df_0['geoid'] = k
-		hispanic_age_sex_race = hispanic_age_sex_race.append(df_0)
-
-	hispanic_age_sex_race = hispanic_age_sex_race.rename(columns={'index':'race','variable':'sex_age','value':'hispanic_pop_count'})
-	hispanic_age_sex_race['race'] = hispanic_age_sex_race.race.str[:-9]
-
-	assert(df.shape[0]==hispanic_age_sex_race.shape[0]), "hispanic vs all-ethnicity dfs don't have same shape"
-	return hispanic_age_sex_race
 
 if __name__=="__main__":
 	import sys
@@ -270,11 +280,4 @@ if __name__=="__main__":
 	main(args.state, args.county, args.tract)
 
 
-# qsub -P proj_cost_effect -o /share/temp/sgeoutput/beatrixh/output -e /share/temp/sgeoutput/beatrixh/errors -N ca_county_opt_synth -l fthread=1 -l m_mem_free=30G -q all.q -l h_rt=04:00:00 -V /ihme/code/beatrixh/microsim_2020/scripts/pyomo_shell.sh /ihme/code/beatrixh/microsim_2020/census_2020/synthetic_pop/gen_synth_pop/generate_underlying_structure.py 6 001 427100
-
-# qsub -P proj_cost_effect -o /share/temp/sgeoutput/beatrixh/output -e /share/temp/sgeoutput/beatrixh/errors -N ca_tract_opt_synth -l fthread=1 -l m_mem_free=30G -q all.q -l h_rt=01:30:00 -V /ihme/code/beatrixh/microsim_2020/scripts/pyomo_shell.sh /ihme/code/beatrixh/microsim_2020/census_2020/synthetic_pop/gen_synth_pop/generate_underlying_structure.py 6 001 427100
-
-
-# qsub -P proj_cost_effect -o /share/temp/sgeoutput/beatrixh/output -e /share/temp/sgeoutput/beatrixh/errors -N al_county_opt_synth -l fthread=1 -l m_mem_free=30G -q all.q -l h_rt=04:00:00 -V /ihme/code/beatrixh/microsim_2020/scripts/pyomo_shell.sh /ihme/code/beatrixh/microsim_2020/census_2020/synthetic_pop/gen_synth_pop/generate_underlying_structure.py 1 001 021100
-
-# qsub -P proj_cost_effect -o /share/temp/sgeoutput/beatrixh/output -e /share/temp/sgeoutput/beatrixh/errors -N al_tract_opt_synth -l fthread=1 -l m_mem_free=30G -q all.q -l h_rt=01:30:00 -V /ihme/code/beatrixh/microsim_2020/scripts/pyomo_shell.sh /ihme/code/beatrixh/microsim_2020/census_2020/synthetic_pop/gen_synth_pop/generate_underlying_structure.py 1 001 021100
+# qsub -P proj_cost_effect -o /share/temp/sgeoutput/beatrixh/output -e /share/temp/sgeoutput/beatrixh/errors -N test_ms28_161_950300 -l fthread=1 -l m_mem_free=10G -q all.q -l h_rt=02:00:00 -V /ihme/code/beatrixh/microsim_2020/scripts/pyomo_shell.sh /ihme/code/beatrixh/microsim_2020/census_2020/synthetic_pop/gen_synth_pop/generate_underlying_structure.py 28 161 950300
