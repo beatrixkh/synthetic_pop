@@ -31,7 +31,7 @@ def pull_geo_race_age_sex(path, state, county, tract = None):
 	# subset to loc of interest and cast to long
 	df = df[(df.STATE==float(state)) & (df.COUNTY==float(county))]
 	if tract!=None:
-		df = df[df.TRACT==float(tract)]
+		df = df[df.TRACT.astype(float)==float(tract)]
 	df = df.melt(id_vars = location_cols, value_vars = sex_by_age_detailed_all)
 
 	# remove both-sex all-age
@@ -102,8 +102,9 @@ def label_census_age_sex(input_df):
 	df = input_df.copy(deep=True)
 	df['var_key'] = df.variable.str[:4] + df.variable.str[5:]
 	if df.var_key.nunique()!=48:
-	    raise Exception("Oops; variable col doesn't contain expected vals")
-	    
+		print(df.var_key.unique())
+		raise Exception("Oops; variable col doesn't contain expected vals")
+		
 	df['var_key'] = df.var_key.str[-2:].astype(int)
 
 
