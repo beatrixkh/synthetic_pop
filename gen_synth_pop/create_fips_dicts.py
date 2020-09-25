@@ -45,15 +45,7 @@ def main(state):
 # 	parser.add_argument('state', help='', type='str')
 # 	main(args.state)
 
-# states = ['al', 'ak', 'ar', 'az', 'ca', 'co', 'ct', 'de', 'dc', 'fl', 'ga', 'hi', 'id', 'il', 'in', 'ia', 'ks', 'ky', 'la', 'me', 'md', 'ma', 'mi', 'mn', 'ms', 'mo', 'mt', 'ne', 'nv', 'nh', 'nj', 'nm', 'ny', 'nc', 'nd', 'oh', 'ok', 'or', 'pa', 'ri', 'sc', 'sd', 'tn', 'tx', 'ut', 'vt', 'va', 'wa', 'wv', 'wi', 'wy', 'pr']
-
-# states = ['sc', 'or', 
-# states = ['pa', 'wy', 'ri', 'tn', 'ut', 'pr', 
-# states = ['pr', 'vt', 'nc', 
-# states = ['ok', 
-# states = ['tx', 
-states = ['va', 'sd', 'wi', 'oh', 'wv', 'nd']
-# fips_dict = {'al': 1, 'ak': 2, 'ar': 4, 'az': 5, 'ca': 6, 'co': 8, 'ct': 9, 'de': 10, 'dc': 11, 'fl': 12, 'ga': 13, 'hi': 15, 'id': 16, 'il': 17, 'in': 18, 'ia': 19, 'ks': 20, 'ky': 21, 'la': 22, 'me': 23, 'md': 24, 'ma': 25, 'mi': 26, 'mn': 27, 'ms': 28, 'mo': 29, 'mt': 30, 'ne': 31, 'nv': 32, 'nh': 33, 'nj': 34, 'nm': 35, 'ny': 36, 'nc': 37, 'nd': 38, 'oh': 39, 'ok': 40, 'or': 41, 'pa': 42, 'ri': 44, 'sc': 45, 'sd': 46, 'tn': 47, 'tx': 48, 'ut': 49, 'vt': 50, 'va': 51, 'wa': 53, 'wv': 54, 'wi': 55, 'wy': 56, 'pr': 72}
+states = ['nc']
 
 for state in states:
 	print(state)
