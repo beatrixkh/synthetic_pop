@@ -6,12 +6,9 @@ from new_process_acs import *
 from new_process_decennial import *
 from new_sample_data import *
 
-import pandas as pd, numpy as np
-
 def main(state, county, tract):
-
-
-    state_codes = {1: 'AL', 2: 'AK', 4: 'AR', 5: 'AZ', 6: 'CA', 
+    print("loading fips dict")
+    state_codes = {1: 'AL', 2: 'AK', 5: 'AR', 4: 'AZ', 6: 'CA', 
     8: 'CO', 9: 'CT', 10: 'DE', 11: 'DC', 12: 'FL', 13: 'GA', 
     15: 'HI', 16: 'ID', 17: 'IL', 18: 'IN', 19: 'IA', 20: 'KS', 
     21: 'KY', 22: 'LA', 23: 'ME', 24: 'MD', 25: 'MA', 26: 'MI', 
@@ -41,6 +38,7 @@ def main(state, county, tract):
     assert(np.unique([len(i) for i in input_df.geoid]).sum()==15), "Some of the geoids aren't length 15"
 
     # grab some invariants to check against
+    print("grabbing invars")
     male_total_check = input_df[input_df.sex_id==1].pop_count.sum()
     fem_total_check = input_df[input_df.sex_id==2].pop_count.sum()
     unique_vals_invar1 = input_df.geoid.nunique() * input_df.sex_id.nunique() * input_df.hispanic.nunique() * input_df.hhgq.nunique()
@@ -74,8 +72,6 @@ def main(state, county, tract):
     #final order
     final_cols = ['state','county','tract','block','geoid','age','sex_id','relationship','hispanic', 
     'racaian', 'racasn', 'racblk', 'racnhpi', 'racsor', 'racwht', 'pweight']
-    final_cols = ['geoid','age','sex_id','relationship','hispanic', 
-    'racaian', 'racasn', 'racblk', 'racnhpi', 'racsor', 'racwht', 'pweight']
     output = single_years_df.filter(items=final_cols)
 
     print("saving")
@@ -104,11 +100,13 @@ if __name__=="__main__":
     import sys
     import argparse
     import cProfile
+    print("loading args")
     parser = argparse.ArgumentParser()
     parser.add_argument("state", help="", type=int)
     parser.add_argument("county", help="", type=str)
     parser.add_argument("tract", help="", type=str)
     args = parser.parse_args()
+    print("running main")
     main(args.state, args.county, args.tract)
 
-# qsub -P proj_cost_effect -o /share/temp/sgeoutput/beatrixh/output -e /share/temp/sgeoutput/beatrixh/errors -N pls_work_ca6_001_428302_single_year -l fthread=1 -l m_mem_free=10G -q all.q -l h_rt=01:00:00 -V /ihme/code/beatrixh/microsim_2020/scripts/pyomo_shell.sh /ihme/code/beatrixh/microsim_2020/census_2020/synthetic_pop/gen_synth_pop/new_sample_single_year_age_distribution.py 6 001 428302
+# qsub -P proj_cost_effect -o /share/temp/sgeoutput/beatrixh/output -e /share/temp/sgeoutput/beatrixh/errors -N mem15G -l fthread=1 -l m_mem_free=15G -q all.q -l h_rt=01:00:00 -V /ihme/code/beatrixh/microsim_2020/scripts/basic_shell.sh /ihme/code/beatrixh/microsim_2020/census_2020/synthetic_pop/gen_synth_pop/new_sample_single_year_age_distribution.py 6 001 400100
