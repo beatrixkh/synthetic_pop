@@ -120,7 +120,7 @@ def add_race_vars(df):
     # collapse race dummy vars
     df['race7'] = 'multi'
     for race in all_races:
-        df.loc[(df[race]==1) & (df.racsum==1),'race'] = race
+        df.loc[(df[race]==1) & (df.racsum==1),'race7'] = race
 
     # create 63-race col
     df['race_detail'] = ['racaian{}_racasn{}_racblk{}_racnhpi{}_racsor{}_racwht{}'.format(a,b,c,d,e,f) 
