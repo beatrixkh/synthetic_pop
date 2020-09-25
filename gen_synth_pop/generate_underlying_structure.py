@@ -10,7 +10,7 @@ from add_gq import *
 
 def main(state, county, tract):
 
-	fips_codes = {1: 'AL', 2: 'AK', 4: 'AR', 5: 'AZ', 6: 'CA', 
+	fips_codes = {1: 'AL', 2: 'AK', 5: 'AR', 4: 'AZ', 6: 'CA', 
 	8: 'CO', 9: 'CT', 10: 'DE', 11: 'DC', 12: 'FL', 13: 'GA', 
 	15: 'HI', 16: 'ID', 17: 'IL', 18: 'IN', 19: 'IA', 20: 'KS', 
 	21: 'KY', 22: 'LA', 23: 'ME', 24: 'MD', 25: 'MA', 26: 'MI', 
@@ -30,67 +30,70 @@ def main(state, county, tract):
 	male_check, fem_check = df[df.sex_id==1].pop_count.sum(), df[df.sex_id==2].pop_count.sum()
 
 	#make sure positive int pop
-	assert(male_check + fem_check > 0), "This location has population zero"
-
-	## add ethnicity -----------------------------------------------------------
-
-	#pull joint race/ethnicity distribution
-	race_ethnicity_props_df = pull_race_ethnicity(state, county, tract, path)
-
-	#pull joint ethnicity/age/sex distribution
-	hispanic_age_sex =  pull_age_sex_ethnicity(state, county, tract, path)
-
-	# optimize to get joint race-ethnicity-age-sex
-	hispanic_age_sex_race = assign_hispanic(df, race_ethnicity_props_df, hispanic_age_sex)
-
-	## subtract hispanic out from (hispanic+non-hispanic)
-	df_with_ethnicity = subtract_hispanic_from_all(df, hispanic_age_sex_race)
-
-	## add gq structure --------------------------------------------------------
-
-	# pull gq-race distribution
-	gq_race_df = pull_block_race(state, county, tract, path)
-
-	# pull gq-sex/age distribution
-	gq_sex_age_df = pull_sex_age_tract(state, county, tract, path)
-
-	# optimize to get joint race-sex/age-gq distribution
-	gq_race_age_df = find_gq(df, gq_race_df, gq_sex_age_df)
-
-	# assign gq to extant structure
-	df_final = assign_gq(df_with_ethnicity, gq_race_age_df)
-
-	## checks ------------------------------------------------------------------
-
-	assert(int(df_final[df_final.sex_id==1].pop_count.sum())==male_check), "male pop count didn't stay constant"
-	assert(int(df_final[df_final.sex_id==2].pop_count.sum())==fem_check), "female pop count didn't stay constant"
-
-	## format and save ---------------------------------------------------------
-	race_label_map = {'multi':'multi','white':'racwht','asian':'racasn','black':'racblk','otherrace':'racsor','aian':'racaian','nhpi':'racnhpi'}
-	df_final["race"] = df_final.race.map(race_label_map)
-
-	# save to csv
-	# first try to save to best dir
-	best_dir = '/ihme/scratch/users/beatrixh/underlying_pop/best/'
-	state_dir = best_dir  + state_name
-	for d in [best_dir, state_dir]:
-	    if not os.path.exists(d):
-	        os.mkdir(d)
-	if tract==None:
-		save_name = '/state{}_county{}.csv'.format(state,county)
+	if male_check + fem_check == 0:
+		print("Location {} {} {} has population zero".format(state, county, tract))
+	
 	else:
-		save_name = '/state{}_county{}_tract{}.csv'.format(state,county,tract)
 
-	# if this file doesn't already exist in best dir, save. otherwise, save to date-specific dir
-	if not os.path.exists(state_dir + save_name):
-		df_final.to_csv(state_dir + save_name, index=False)
-	else:
-		today = datetime.date.today()
-		today_dir = '/ihme/scratch/users/beatrixh/underlying_pop/' + str(today) + '/'
-		state_dir = today_dir + '/' + state_name
-		for d in [today_dir, state_dir]:
-			os.mkdir(d)
-		df_final.to_csv(state_dir + save_name, index = False)    
+		## add ethnicity -----------------------------------------------------------
+
+		#pull joint race/ethnicity distribution
+		race_ethnicity_props_df = pull_race_ethnicity(state, county, tract, path)
+
+		#pull joint ethnicity/age/sex distribution
+		hispanic_age_sex =  pull_age_sex_ethnicity(state, county, tract, path)
+
+		# optimize to get joint race-ethnicity-age-sex
+		hispanic_age_sex_race = assign_hispanic(df, race_ethnicity_props_df, hispanic_age_sex)
+
+		## subtract hispanic out from (hispanic+non-hispanic)
+		df_with_ethnicity = subtract_hispanic_from_all(df, hispanic_age_sex_race)
+
+		## add gq structure --------------------------------------------------------
+
+		# pull gq-race distribution
+		gq_race_df = pull_block_race(state, county, tract, path)
+
+		# pull gq-sex/age distribution
+		gq_sex_age_df = pull_sex_age_tract(state, county, tract, path)
+
+		# optimize to get joint race-sex/age-gq distribution
+		gq_race_age_df = find_gq(df, gq_race_df, gq_sex_age_df)
+
+		# assign gq to extant structure
+		df_final = assign_gq(df_with_ethnicity, gq_race_age_df)
+
+		## checks ------------------------------------------------------------------
+
+		assert(int(df_final[df_final.sex_id==1].pop_count.sum())==male_check), "male pop count didn't stay constant"
+		assert(int(df_final[df_final.sex_id==2].pop_count.sum())==fem_check), "female pop count didn't stay constant"
+
+		## format and save ---------------------------------------------------------
+		race_label_map = {'multi':'multi','white':'racwht','asian':'racasn','black':'racblk','otherrace':'racsor','aian':'racaian','nhpi':'racnhpi'}
+		df_final["race"] = df_final.race.map(race_label_map)
+
+		# save to csv
+		# first try to save to best dir
+		best_dir = '/ihme/scratch/users/beatrixh/underlying_pop/best/'
+		state_dir = best_dir  + state_name
+		for d in [best_dir, state_dir]:
+		    if not os.path.exists(d):
+		        os.mkdir(d)
+		if tract==None:
+			save_name = '/state{}_county{}.csv'.format(state,county)
+		else:
+			save_name = '/state{}_county{}_tract{}.csv'.format(state,county,tract)
+
+		# if this file doesn't already exist in best dir, save. otherwise, save to date-specific dir
+		if not os.path.exists(state_dir + save_name):
+			df_final.to_csv(state_dir + save_name, index=False)
+		else:
+			today = datetime.date.today()
+			today_dir = '/ihme/scratch/users/beatrixh/underlying_pop/' + str(today) + '/'
+			state_dir = today_dir + '/' + state_name
+			for d in [today_dir, state_dir]:
+				os.mkdir(d)
+			df_final.to_csv(state_dir + save_name, index = False)    
 
 
 def find_gq(df, gq_race_df, gq_sex_age_df):
