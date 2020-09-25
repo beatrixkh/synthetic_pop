@@ -104,7 +104,7 @@ def pull_block_race(state, county, tract, path):
 
     gq_race_df = gq_race_df[(gq_race_df.STATE==float(state)) & (gq_race_df.COUNTY==float(county))]
     if tract!=None:
-        gq_race_df = gq_race_df[(gq_race_df.TRACT==float(tract))]
+        gq_race_df = gq_race_df[(gq_race_df.TRACT.astype(float)==float(tract))]
 
     gq_race_df = gq_race_df.melt(id_vars = location_cols, value_vars = gq_block_race_vars)
 
@@ -130,7 +130,7 @@ def pull_sex_age_tract(state, county, tract, path):
     gq_sex_age_df = gq_sex_age_df[(gq_sex_age_df.STATE==float(state)) &
                                   (gq_sex_age_df.COUNTY==float(county))]
     if tract!=None:
-        gq_sex_age_df = gq_sex_age_df[(gq_sex_age_df.TRACT==float(tract))]
+        gq_sex_age_df = gq_sex_age_df[(gq_sex_age_df.TRACT.astype(float)==float(tract))]
 
     gq_sex_age_df = gq_sex_age_df.melt(id_vars = ['STATE','COUNTY','TRACT'], value_vars = gq_tract_sex_age_vars)
 

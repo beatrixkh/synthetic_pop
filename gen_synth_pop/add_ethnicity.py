@@ -22,7 +22,7 @@ def pull_race_ethnicity(state, county, tract, path):
 	race_ethnicity_props_df = race_ethnicity_props_df[(race_ethnicity_props_df.STATE==state) &
 												(race_ethnicity_props_df.COUNTY==county)]
 	if tract!=None:
-		race_ethnicity_props_df = race_ethnicity_props_df[(race_ethnicity_props_df.TRACT==tract)]
+		race_ethnicity_props_df = race_ethnicity_props_df[(race_ethnicity_props_df.TRACT.astype(float)==tract)]
 
 	## cast to long
 	race_ethnicity_props_df = race_ethnicity_props_df.melt(id_vars = location_cols,
@@ -51,7 +51,7 @@ def pull_age_sex_ethnicity(state, county, tract, path):
 	## subset to loc of interest
 	hispanic_age_sex = hispanic_age_sex[(hispanic_age_sex.STATE==state) & (hispanic_age_sex.COUNTY==county)]
 	if tract!=None:
-		hispanic_age_sex = hispanic_age_sex[(hispanic_age_sex.TRACT==tract)]
+		hispanic_age_sex = hispanic_age_sex[(hispanic_age_sex.TRACT.astype(float)==tract)]
 
 	## cast to long, add age and sex cols
 	hispanic_age_sex = hispanic_age_sex.melt(id_vars = location_cols, value_vars = sex_by_age_hispanic, value_name = 'pop_count')
