@@ -1,4 +1,4 @@
-import numpy as np, pandas as pd, math, os
+import numpy as np, pandas as pd, math, os, pickle
 
 # base fns ---------------------------------------------------------------------
 
@@ -60,6 +60,14 @@ bin_dict = {('race','race_detail'):2**6-1, #most granular race
             ('relp','relp_reduced'):set(relp_map.values()).__len__(),
             ('sex','sex_id'):2, #most granular sex
             ('ethnicity','hispanic'):2} #most granular ethnicity
+
+fips_codes = {1: 'al', 2: 'ak', 5: 'ar', 4: 'az', 6: 'ca', 8: 'co', 9: 'ct', 
+10: 'de', 11: 'dc', 12: 'fl', 13: 'ga', 15: 'hi', 16: 'id', 17: 'il', 18: 'in', 
+19: 'ia', 20: 'ks', 21: 'ky', 22: 'la', 23: 'me', 24: 'md', 25: 'ma', 26: 'mi',
+ 27: 'mn', 28: 'ms', 29: 'mo', 30: 'mt', 31: 'ne', 32: 'nv', 33: 'nh', 34: 'nj', 
+ 35: 'nm', 36: 'ny', 37: 'nc', 38: 'nd', 39: 'oh', 40: 'ok', 41: 'or', 42: 'pa', 
+ 44: 'ri', 45: 'sc', 46: 'sd', 47: 'tn', 48: 'tx', 49: 'ut', 50: 'vt', 51: 'va', 
+ 53: 'wa', 54: 'wv', 55: 'wi', 56: 'wy', 72: 'pr'}
 
 # data prep --------------------------------------------------------------------
 
@@ -145,6 +153,15 @@ def find_n_hi(df, ns, **kwargs):
 
 def calc_n_hi_all_scenarios(df, ns = [0,1,2,3,4,5,6,7,8,16,32,64,128,256,512]):
 
+    # make sure just one tract
+    assert(df[['state','county','tract']].drop_duplicates().shape[0]==1), 'Oops; function expects one tract at a time'
+
+    state = df.iloc[0].state
+    county = df.iloc[0].county
+    tract = df.iloc[0].tract
+
+    state_name = fips_codes[state]
+
     # format df
     df = add_race_vars(df)
     df = add_bin_vars(df)
@@ -161,3 +178,47 @@ def calc_n_hi_all_scenarios(df, ns = [0,1,2,3,4,5,6,7,8,16,32,64,128,256,512]):
                 n_his = n_his.append(his)
                 
     return n_his
+
+def pull_zero_pop_tracts(state_name):
+    """ for a given state, pull a dataframe containing all tracts with pop==0
+    """
+    zero_pop_path =  '/ihme/scratch/users/beatrixh/synthetic_pop/pyomo/zero_pop_tracts/state_{}_geoids.csv'.format(state_name)
+    zero_pop = pd.read_csv(zero_pop_path)
+    zero_pop = zero_pop[['STATE','COUNTY','TRACT']].drop_duplicates()
+    
+    return [(c,t) for (c,t) in zip(zero_pop.COUNTY,zero_pop.TRACT)]
+
+
+def save_n_his(df, state_name, state, county):
+    
+    state_dir = '/ihme/scratch/users/beatrixh/synthetic_pop/binning_results/n_his/{}/'.format(state_name)
+    save_path = state_dir + 'state{}_county{}_nhis.csv'.format(state, county)
+    
+    if not os.path.exists(state_dir):
+        os.mkdir(state_dir)
+    
+    df.to_csv(save_path, index = False)
+    print('saved state {} (fips {}), county {}'.format(state_name, state, county))
+
+# load pickle objs -------------------------------------------------------------
+
+def load_obj(name ):
+    path = '/ihme/scratch/users/beatrixh/fips_dicts/'
+    with open(path + name + '.pkl', 'rb') as f:
+        return pickle.load(f)
+
+def load_county_dicts(states):
+    d = {}
+    for state in states:
+        path = '{}_county_dict'.format(state)
+        new = load_obj(path)
+        d = {**d, **new}
+    return d
+
+def load_tract_dicts(states):
+    d = {}
+    for state in states:
+        path = '{}_tract_dict'.format(state)
+        new = load_obj(path)
+        d = {**d, **new}
+    return d 
