@@ -8,7 +8,7 @@ location_cols = ['STATE', 'COUNTY', 'TRACT', 'BLKGRP', 'BLOCK']
 underlying_dir = '/ihme/scratch/users/beatrixh/underlying_pop/best/'
 outputs_dir = '/ihme/scratch/users/beatrixh/synthetic_pop/pyomo/best/'
 
-fips_dict = {'al': 1, 'ak': 2, 'ar': 4, 'az': 5, 'ca': 6, 'co': 8, 
+fips_dict = {'al': 1, 'ak': 2, 'ar': 5, 'az': 4, 'ca': 6, 'co': 8, 
 'ct': 9, 'de': 10, 'dc': 11, 'fl': 12, 'ga': 13, 'hi': 15, 'id': 16, 
 'il': 17, 'in': 18, 'ia': 19, 'ks': 20, 'ky': 21, 'la': 22, 'me': 23, 
 'md': 24, 'ma': 25, 'mi': 26, 'mn': 27, 'ms': 28, 'mo': 29, 'mt': 30, 
@@ -139,16 +139,41 @@ def find_missings(state, which = 'underlying'):
 	if target.shape[0]==0:
 		print("no inputs for {}, {}".format(state, which))
 
-	#find targets not hit   
-	missings = np.unique([county for county in target.county if county not in output.county])
-	which_tracts = pd.DataFrame(columns = ['county','tract'])
-	r = 0
-	for county in missings:
-		m = [i for i in target[target.county==county].tract.tolist() if i not in output[output.county==county].tract.tolist()]
-		for tract in m:
-			which_tracts.loc[r] = county, tract
-			r +=1
-	return which_tracts
+	#find targets not hit
+	missings = [(c,t) for (c,t) in zip(target.county,target.tract) if (c,t) not in zip(output.county,output.tract)]
+	missings = pd.DataFrame(t, columns = ['county','tract'])
+	missings['state'] = state
+
+	return missings[['state','county','tract']]
+
+
+	# #find targets not hit   
+	# missings = np.unique([county for county in target.county if county not in output.county])
+	# which_tracts = pd.DataFrame(columns = ['county','tract'])
+	# r = 0
+	# for county in missings:
+	# 	m = [i for i in target[target.county==county].tract.tolist() if i not in output[output.county==county].tract.tolist()]
+	# 	for tract in m:
+	# 		which_tracts.loc[r] = county, tract
+	# 		r +=1
+	# return which_tracts
+
+def check_file_complete(state):
+	"""
+	see if undelrlying ciser download has expected total pop per state
+	"""
+	# pull in ref file for synth pop
+	path = '/ihme/scratch/users/beatrixh/decennial_census_2010/{}_decennial_2010/{}2010ur1_all_vars.CSV'.format(state,state)
+	usecols = location_cols + ['P0010001']
+	df = pd.read_csv(path, usecols=usecols)
+	df = df[df.BLOCK.notna()]
+
+	# get state pop totals
+	ref = pd.read_csv('/ihme/scratch/users/beatrixh/us_state_pop_2010_decennial.csv')
+	dif = ref[ref.state==state].pop_count.values[0] - df.P0010001.sum()
+	if dif > 0:
+		print("{} pop total is off by {}".format(state, dif))
+	return dif
 
 ## import fns ------------------------------------------------------------------
 

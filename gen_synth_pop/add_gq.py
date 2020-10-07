@@ -150,7 +150,93 @@ def pull_sex_age_tract(state, county, tract, path):
 
     gq_sex_age_df = gq_sex_age_df.drop(columns=['age_sex_inst_key','variable'])
     gq_sex_age_df = gq_sex_age_df.rename(columns={'value':'pop_count'})
-    
+    gq_sex_age_df.pop_count = gq_sex_age_df.pop_count.astype(int)
+
     gq_sex_age_df = add_geoid(gq_sex_age_df)
     
     return gq_sex_age_df
+
+def find_gq(df, gq_race_df, gq_sex_age_df):
+
+  census_blocks = gq_race_df.geoid.unique().tolist()
+  sex_ages = gq_sex_age_df.sex_age.unique().tolist()
+  races = gq_race_df.race.unique().tolist()
+  gq_types = ['inst','noninst']
+
+  tract_geoids = gq_sex_age_df.geoid.unique().tolist()
+
+  gq_model = ConcreteModel()
+  gq_model.x = Var(races, sex_ages, census_blocks, gq_types, within=NonNegativeIntegers)
+
+
+  # require race distribution correct
+  gq_model.correct_race_hist = ConstraintList()
+  for k in census_blocks:
+    for i in races:
+      for l in gq_types:
+        count = gq_race_df[(gq_race_df.geoid==k) & (gq_race_df.race==i) & (gq_race_df.gq_type==l)].pop_count.values[0]
+        gq_model.correct_race_hist.add(
+          sum(gq_model.x[i,j,k,l] for j in sex_ages) == count
+          )
+
+  # require sex/age distribution correct
+  gq_model.correct_sex_age_hist = ConstraintList()
+  for tract_geoid in tract_geoids:
+    geoids = gq_race_df[(gq_race_df.tract_geoid==tract_geoid)].geoid.unique().tolist()
+    for j in sex_ages:
+      for l in gq_types:
+        count = gq_sex_age_df[(gq_sex_age_df.geoid==tract_geoid) & (gq_sex_age_df.sex_age==j) &  (gq_sex_age_df.gq_type==l)].pop_count.values[0]
+        gq_model.correct_sex_age_hist.add(
+          sum(gq_model.x[i,j,k,l] for i in races for k in geoids) == count
+          )
+
+
+  # for each block/race/sex/age, require that gq <= gq + non-gq
+  ceiling_df = df.copy()
+  ceiling_df['sex2_age3'] = [0 if age_end < 18 else 18 if age_end < 65 else 65 for age_end in ceiling_df.age_end]
+  ceiling_df['sex2_age3'] = ['f_' + str(i) if j==2 else 'm_' + str(i) for (i,j) in zip(ceiling_df.sex2_age3,ceiling_df.sex_id)]
+  ceiling_df = ceiling_df[['geoid','sex2_age3','race','pop_count']].groupby(['geoid','sex2_age3','race']).sum().reset_index()
+
+  gq_model.pop_count_ceiling = ConstraintList()
+  for i in races:
+    for j in sex_ages:
+        for k in census_blocks:
+          ceil = ceiling_df[(ceiling_df.race==i) & (ceiling_df.sex2_age3==j) & (ceiling_df.geoid==k)].pop_count.values[0]
+          gq_model.pop_count_ceiling.add(
+            sum(gq_model.x[i,j,k,l] for l in gq_types) <= ceil
+            )
+
+  #solve
+  gq_model.obj = Objective(expr = 0)
+  opt = SolverFactory('cbc')  # installed from conda https://anaconda.org/conda-forge/coincbc
+  gq_results = opt.solve(gq_model)
+
+  #pull results into an array
+  X = np.zeros((len(races), len(sex_ages), len(census_blocks), len(gq_types)))
+  for i in range(len(races)):
+    for j in range(len(sex_ages)):
+      for k in range(len(census_blocks)):
+        for l in range(len(gq_types)):
+          X[i,j,k,l] = value(gq_model.x[races[i],sex_ages[j],census_blocks[k],gq_types[l]])
+  
+  # move into a 2D dataframe
+  gq_race_age_df = pd.DataFrame()
+  for k in census_blocks:
+    for l in gq_types:
+      X_0 = np.zeros((len(races), len(sex_ages)))
+      for i in range(len(races)):
+        for j in range(len(sex_ages)):
+          X_0[i,j] = value(gq_model.x[races[i],sex_ages[j],k,l])
+      df_0 = pd.DataFrame(X_0, index = races, columns = sex_ages).reset_index().melt(id_vars = 'index', value_vars = sex_ages)
+      df_0['geoid'] = k
+      df_0['gq_type'] = l
+      gq_race_age_df = gq_race_age_df.append(df_0)
+
+  #format
+  gq_race_age_df['sex_id'] = [1 if i[0]=='m' else 2 for i in gq_race_age_df.variable.str.split('_')]
+  gq_race_age_df['age_start'] = [np.int(i[1]) for i in gq_race_age_df.variable.str.split('_')]
+  gq_race_age_df['age_end'] = [17 if i==0 else 64 if i==18 else 115 for i in gq_race_age_df.age_start]
+
+  gq_race_age_df = gq_race_age_df.rename(columns={'value':'pop_count','index':'race'})
+
+  return gq_race_age_df
