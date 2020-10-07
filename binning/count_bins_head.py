@@ -24,7 +24,7 @@ def main(state_name, county):
 
 			n_his = n_his.append(sub)
 
-	save_n_his(df, state_name, state, county)
+	save_n_his(n_his, state_name, state, county)
 
 if __name__=="__main__":
 	import sys
