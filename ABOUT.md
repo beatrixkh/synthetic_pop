@@ -32,7 +32,7 @@ gen_synth_pop/identify_pop_zero_tracts/identify_pop_zero_tracts.py
 	P12G P5, P12H, PCT21, P21A, P29B, P29C, P29D, P29E, P29F, P29G
 	
 	LOGIC:
-	
+
     * pulls in joint geo/race/age/sex distribution
 
     * pulls in joint race/ethnicity distribution
@@ -65,11 +65,17 @@ gen_synth_pop/identify_pop_zero_tracts/identify_pop_zero_tracts.py
 	with a sex, 5ish-year age bin, race category, ethnicity, group quarters 
 	status,	and census block geoid obtain list of individuals in the state who 
 	match on:
-		-  [sex, age, race, ethnicity, and gq status].
-			- If nonexistant, try: [age, race, ethnicity, and gq status]
-				- If nonexistant, try: [age, race, and gq status]
-					- If nonexistant, try: [age, and gq status]
-						- If nonexistant, try: [age]
+    
+    *  [sex, age, race, ethnicity, and gq status].
+
+        * If nonexistant, try: [age, race, ethnicity, and gq status]
+
+            * If nonexistant, try: [age, race, and gq status]
+
+                * If nonexistant, try: [age, and gq status]
+                
+                    * If nonexistant, try: [age]
+
 	With this list, for every individual in the corresponding row of the 
 	underlying population structure table, sample an individual from the 
 	state-level ACS data, and assign to the individual from the underlying 
