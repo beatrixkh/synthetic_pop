@@ -1,7 +1,7 @@
-## SYNTHETIC POP ##
+## Synthetic Pop ##
 Creates synthetic population files for the 2010 US population
 
-## HIGHEST LEVEL OVERVIEW ##
+## Overview ##
 0. gen_synth_pop/swarm_underlying_structure.py launches 
 (1) gen_synth_pop/generate_underlying_structure.py and 
 (2) gen_synth_pop/new_sample_single_year_age_distribution.py
@@ -25,7 +25,7 @@ gen_synth_pop/identify_pop_zero_tracts/identify_pop_zero_tracts.py
 2. gen_synth_pop/synth_pop_diagnostics.py
 	Runs a series of checks on the file outputs.
 
-## SCRIPT LOGIC ##
+## Script Logic ##
 0. generate_underlying_structure.py
 	ARGUMENTS: state (int), county (string), tract (string)
 	INPUTS: 2010 Decennial Census tables P12A, P12B, P12C, P12D, P12E, P12F, 
@@ -73,7 +73,7 @@ gen_synth_pop/identify_pop_zero_tracts/identify_pop_zero_tracts.py
             * If nonexistant, try: [age, race, and gq status]
 
                 * If nonexistant, try: [age, and gq status]
-                
+
                     * If nonexistant, try: [age]
 
 	With this list, for every individual in the corresponding row of the 
