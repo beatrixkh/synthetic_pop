@@ -33,23 +33,23 @@ gen_synth_pop/identify_pop_zero_tracts/identify_pop_zero_tracts.py
 	
 	LOGIC:
 	
-    * pulls in joint geo/race/age/sex distribution
+        * pulls in joint geo/race/age/sex distribution
 
-    * pulls in joint race/ethnicity distribution
+        * pulls in joint race/ethnicity distribution
 
-    * pulls in joint ehtnicity/age/sex distribution
+        * pulls in joint ehtnicity/age/sex distribution
 
-    * optimizes to get joint race/ethnicity/age/sex distribution
+        * optimizes to get joint race/ethnicity/age/sex distribution
 
-    * subtracts out {hispanic} from {hispanic + non-hispanic}
+        * subtracts out {hispanic} from {hispanic + non-hispanic}
 
-    * pulls in group-quarters (gq)/race distribution
+        * pulls in group-quarters (gq)/race distribution
 
-    * pulls in gq/sex/age distribution
+        * pulls in gq/sex/age distribution
 
-    * optimizes to get joint race/sex/age/gq distribution
+        * optimizes to get joint race/sex/age/gq distribution
 
-    * assigns gq status to established structure
+        * assigns gq status to established structure
 
 	OUTPUTS: a csv with one row for each unique 
 	2-sex/23-age/7-race/2-ethnicity/2-gq/block-level geoid value, and the count 
