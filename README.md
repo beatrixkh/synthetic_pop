@@ -19,7 +19,8 @@ Creates synthetic population files for the 2010 US population
 	INPUTS: 2010 Decennial Census tables P12A, P12B, P12C, P12D, P12E, P12F, 
 	P12G P5, P12H, PCT21, P21A, P29B, P29C, P29D, P29E, P29F, P29G
 	
-	LOGIC:	- pulls in joint geo/race/age/sex distribution
+	LOGIC:	
+			- pulls in joint geo/race/age/sex distribution
 
 			- pulls in joint race/ethnicity distribution
 			- pulls in joint ehtnicity/age/sex distribution
@@ -72,7 +73,6 @@ Creates synthetic population files for the 2010 US population
 2. Regarding the function gen_synth_pop.new_sample_data.sample_data:
 	- Create diagnostic function to record the frequency with which the different levels of the 'if' hierarchy are used. I.e., how frequently do we match only on age and gq (expected low)
 	- Restructure 'if' hierarchy such that if can't match on [age, race, ethnicity, and gq status], try matching on [sex, race, ethnicity, and gq status] before trying [race, ethnicity, and gq status].
-
 
 
 
