@@ -31,17 +31,16 @@ gen_synth_pop/identify_pop_zero_tracts/identify_pop_zero_tracts.py
 	INPUTS: 2010 Decennial Census tables P12A, P12B, P12C, P12D, P12E, P12F, 
 	P12G P5, P12H, PCT21, P21A, P29B, P29C, P29D, P29E, P29F, P29G
 	
-	LOGIC:	- pulls in joint geo/race/age/sex distribution
-
-			- pulls in joint race/ethnicity distribution
-			- pulls in joint ehtnicity/age/sex distribution
-			- optimizes to get joint race/ethnicity/age/sex distribution
-			- subtracts out {hispanic} from {hispanic + non-hispanic}
-
-			- pulls in group-quarters (gq)/race distribution
-			- pulls in gq/sex/age distribution
-			- optimizes to get joint race/sex/age/gq distribution
-			- assigns gq status to established structure
+	LOGIC:
+			* pulls in joint geo/race/age/sex distribution
+			* pulls in joint race/ethnicity distribution
+			* pulls in joint ehtnicity/age/sex distribution
+			* optimizes to get joint race/ethnicity/age/sex distribution
+			* subtracts out {hispanic} from {hispanic + non-hispanic}
+			* pulls in group-quarters (gq)/race distribution
+			* pulls in gq/sex/age distribution
+			* optimizes to get joint race/sex/age/gq distribution
+			* assigns gq status to established structure
 
 	OUTPUTS: a csv with one row for each unique 
 	2-sex/23-age/7-race/2-ethnicity/2-gq/block-level geoid value, and the count 
