@@ -15,7 +15,7 @@ all_states = ['al', 'ak', 'ar', 'az', 'ca', 'co', 'ct', 'de', 'dc', 'fl', 'ga',
 'wi', 'wy', 'pr']
 
 def main():
-       states = [i for i in all_states if i!='co']
+       states = all_states
        # states = ['co']
        mojbom = Swarm_binning(states)
        mojbom.add_state_counties()
@@ -61,7 +61,7 @@ class Swarm_binning(object):
                             args = state + ' ' + str(county)
                             cmd = interpreter + ' ' + script + ' ' + args  
                             task = BashTask(cmd,
-                                   name = 'bin_and_calc_n_hi_{}_{}'.format(state, county),
+                                   name = '{}_{}_bin_and_calc_n_hi'.format(state, county),
                                    num_cores = 1,
                                    m_mem_free = 10,
                                    max_attempts = 3,
