@@ -26,7 +26,7 @@ gen_synth_pop/identify_pop_zero_tracts/identify_pop_zero_tracts.py
 	Runs a series of checks on the file outputs.
 
 ## Script Logic ##
-0. generate_underlying_structure.py
+#### generate_underlying_structure.py
 	
 	ARGUMENTS: state (int), county (string), tract (string)
 	
@@ -58,6 +58,7 @@ gen_synth_pop/identify_pop_zero_tracts/identify_pop_zero_tracts.py
 	of such individuals from the 2010 Decennial census
 
 1. new_sample_single_year_age_distribution.py
++++++++++++++++++++++++++++++++++++++++++++++
 	
 	ARGUMENTS: state (int), county (string), tract (string)
 	
@@ -84,14 +85,14 @@ gen_synth_pop/identify_pop_zero_tracts/identify_pop_zero_tracts.py
 	underlying population structure table, sample an individual from the 
 	state-level ACS data, and assign to the individual from the underlying 
 	population structure the sampled:
-        * Specific age (Moving from 5-year bins to single-year)
 
-        * Specific race (Moving from 7 categories to 63; note the only change 
-		here is to give multiracial individuals a specific racial mix)
-		
-        * Specific relationship to head of household (Moving from 2 values to 
-		18; note this is only accurate to the degree that the courser values 
-		provided a good prior for this value)
+    * Specific age (Moving from 5-year bins to single-year)
+
+    * Specific race (Moving from 7 categories to 63; note the only change here 
+    is to give multiracial individuals a specific racial mix)
+
+    * Specific relationship to head of household (Moving from 2 values to 18; 
+    provided a good prior for this value)
 
 	OUTPUTS: a csv saved to the dir 
 	ihme/scratch/users/beatrixh/synthetic_pop/pyomo/best/{state}, to the file 
