@@ -35,23 +35,23 @@ gen_synth_pop/identify_pop_zero_tracts/identify_pop_zero_tracts.py
 	
 	LOGIC:
 
-    * pulls in joint geo/race/age/sex distribution
+        * pulls in joint geo/race/age/sex distribution
 
-    * pulls in joint race/ethnicity distribution
+        * pulls in joint race/ethnicity distribution
 
-    * pulls in joint ehtnicity/age/sex distribution
+        * pulls in joint ehtnicity/age/sex distribution
 
-    * optimizes to get joint race/ethnicity/age/sex distribution
+        * optimizes to get joint race/ethnicity/age/sex distribution
 
-    * subtracts out {hispanic} from {hispanic + non-hispanic}
+        * subtracts out {hispanic} from {hispanic + non-hispanic}
 
-    * pulls in group-quarters (gq)/race distribution
+        * pulls in group-quarters (gq)/race distribution
 
-    * pulls in gq/sex/age distribution
+        * pulls in gq/sex/age distribution
 
-    * optimizes to get joint race/sex/age/gq distribution
+        * optimizes to get joint race/sex/age/gq distribution
 
-    * assigns gq status to established structure
+        * assigns gq status to established structure
 
 	OUTPUTS: a csv with one row for each unique 
 	2-sex/23-age/7-race/2-ethnicity/2-gq/block-level geoid value, and the count 
@@ -70,28 +70,28 @@ gen_synth_pop/identify_pop_zero_tracts/identify_pop_zero_tracts.py
 	status,	and census block geoid obtain list of individuals in the state who 
 	match on:
     
-    *  [sex, age, race, ethnicity, and gq status].
+        *  [sex, age, race, ethnicity, and gq status].
 
-        * If nonexistant, try: [age, race, ethnicity, and gq status]
+            * If nonexistant, try: [age, race, ethnicity, and gq status]
 
-            * If nonexistant, try: [age, race, and gq status]
+                * If nonexistant, try: [age, race, and gq status]
 
-                * If nonexistant, try: [age, and gq status]
+                    * If nonexistant, try: [age, and gq status]
 
-                    * If nonexistant, try: [age]
+                        * If nonexistant, try: [age]
 
 	With this list, for every individual in the corresponding row of the 
 	underlying population structure table, sample an individual from the 
 	state-level ACS data, and assign to the individual from the underlying 
 	population structure the sampled:
 
-    * Specific age (Moving from 5-year bins to single-year)
+        * Specific age (Moving from 5-year bins to single-year)
 
-    * Specific race (Moving from 7 categories to 63; note the only change here 
-    is to give multiracial individuals a specific racial mix)
+        * Specific race (Moving from 7 categories to 63; note the only change 
+        	here is to give multiracial individuals a specific racial mix)
 
-    * Specific relationship to head of household (Moving from 2 values to 18; 
-    provided a good prior for this value)
+        * Specific relationship to head of household (Moving from 2 values to 
+        	18; provided a good prior for this value)
 
 	OUTPUTS: a csv saved to the dir 
 	ihme/scratch/users/beatrixh/synthetic_pop/pyomo/best/{state}, to the file 
