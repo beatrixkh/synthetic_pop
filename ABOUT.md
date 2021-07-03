@@ -2,27 +2,29 @@
 Creates synthetic population files for the 2010 US population
 
 ## Overview ##
-1. gen_synth_pop/swarm_underlying_structure.py launches 
+**1. gen_synth_pop/swarm_underlying_structure.py** launches 
 (1) gen_synth_pop/generate_underlying_structure.py and 
 (2) gen_synth_pop/new_sample_single_year_age_distribution.py
-	For each person in the 2010 Decennial Census, these scripts create a row. 
-	These people are saved in csv batches to the dir 
-	/ihme/scratch/users/beatrixh/synthetic_pop/pyomo/best/{state}/, with 
-	filename "state{i}_county{j}_tract{k}.csv", where i, j, and k correspond 
-	to FIPS geoids.
+
+    For each person in the 2010 Decennial Census, these scripts create a row. 
+    These people are saved in csv batches to the dir 
+    /ihme/scratch/users/beatrixh/synthetic_pop/pyomo/best/{state}/, with 
+    filename "state{i}_county{j}_tract{k}.csv", where i, j, and k correspond 
+    to FIPS geoids.
 
 
-2. gen_synth_pop/swarm_pop_zero.py launches 
+**2. gen_synth_pop/swarm_pop_zero.py** launches 
 gen_synth_pop/identify_pop_zero_tracts/identify_pop_zero_tracts.py
-	For each tract containing zero people in the 2010 Decennial census, this 
-	creates a csv saved to the dir 
-	/ihme/scratch/users/beatrixh/synthetic_pop/pyomo/zero_pop_tracts with 
-	filename "state_{state}_geoids.csv". This file has columns: ['STATE',
-	'COUNTY','TRACT','BLOCK'], and a row for each block in the state with 
-	population zero, containing the corresponding FIPS geoid.
+
+    For each tract containing zero people in the 2010 Decennial census, this 
+    creates a csv saved to the dir 
+    /ihme/scratch/users/beatrixh/synthetic_pop/pyomo/zero_pop_tracts with 
+    filename "state_{state}_geoids.csv". This file has columns: ['STATE',
+    'COUNTY','TRACT','BLOCK'], and a row for each block in the state with 
+    population zero, containing the corresponding FIPS geoid.
 
 
-3. gen_synth_pop/synth_pop_diagnostics.py
+**3. gen_synth_pop/synth_pop_diagnostics.py**
 	Runs a series of checks on the file outputs.
 
 ## Script Logic ##
