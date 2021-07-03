@@ -2,7 +2,7 @@
 Creates synthetic population files for the 2010 US population
 
 ## Overview ##
-0. gen_synth_pop/swarm_underlying_structure.py launches 
+1. gen_synth_pop/swarm_underlying_structure.py launches 
 (1) gen_synth_pop/generate_underlying_structure.py and 
 (2) gen_synth_pop/new_sample_single_year_age_distribution.py
 	For each person in the 2010 Decennial Census, these scripts create a row. 
@@ -12,7 +12,7 @@ Creates synthetic population files for the 2010 US population
 	to FIPS geoids.
 
 
-1. gen_synth_pop/swarm_pop_zero.py launches 
+2. gen_synth_pop/swarm_pop_zero.py launches 
 gen_synth_pop/identify_pop_zero_tracts/identify_pop_zero_tracts.py
 	For each tract containing zero people in the 2010 Decennial census, this 
 	creates a csv saved to the dir 
@@ -22,11 +22,11 @@ gen_synth_pop/identify_pop_zero_tracts/identify_pop_zero_tracts.py
 	population zero, containing the corresponding FIPS geoid.
 
 
-2. gen_synth_pop/synth_pop_diagnostics.py
+3. gen_synth_pop/synth_pop_diagnostics.py
 	Runs a series of checks on the file outputs.
 
 ## Script Logic ##
-#### generate_underlying_structure.py
+### 1. generate_underlying_structure.py ###
 	
 	ARGUMENTS: state (int), county (string), tract (string)
 	
@@ -57,8 +57,7 @@ gen_synth_pop/identify_pop_zero_tracts/identify_pop_zero_tracts.py
 	2-sex/23-age/7-race/2-ethnicity/2-gq/block-level geoid value, and the count 
 	of such individuals from the 2010 Decennial census
 
-1. new_sample_single_year_age_distribution.py
-+++++++++++++++++++++++++++++++++++++++++++++
+### 2. new_sample_single_year_age_distribution.py ###
 	
 	ARGUMENTS: state (int), county (string), tract (string)
 	
@@ -102,24 +101,24 @@ gen_synth_pop/identify_pop_zero_tracts/identify_pop_zero_tracts.py
 	individual in the specified tract.
 
 
-2. identify_pop_zero_tracts.py
+### 3. identify_pop_zero_tracts.py ###
 
-3. swarm_underlying_structure.py
+### 4. swarm_underlying_structure.py ###
 
-4. swarm_pop_zero.py
+### 5. swarm_pop_zero.py ###
 
-5. synth_pop_diagnostics.py
+### 6. synth_pop_diagnostics.py ###
 
 ## Function Logic ##
 
 ## Todos ##
-0. "swarm_underlying_structure.py" ought to be renamed to "swarm_pop_synth.py"
-1. "new_sample_data.py" ought to be renamed to "sample_data.py"
-2. "new_process_decennial.py" ought to be renamed to "process_decennial.py"
-3. "new_process_acs.py" ought to be renamed to "process_acs.py"
-4. "new_sample_single_year_age_distribution.py" ought to be renamed to 
+1. "swarm_underlying_structure.py" ought to be renamed to "swarm_pop_synth.py"
+2. "new_sample_data.py" ought to be renamed to "sample_data.py"
+3. "new_process_decennial.py" ought to be renamed to "process_decennial.py"
+4. "new_process_acs.py" ought to be renamed to "process_acs.py"
+5. "new_sample_single_year_age_distribution.py" ought to be renamed to 
 "sample_single_year_age_distribution.py"
-5. Regarding the function gen_synth_pop.new_sample_data.sample_data:
+6. Regarding the function gen_synth_pop.new_sample_data.sample_data:
 	- Create diagnostic function to record the frequency with which the 
 	different levels of the 'if' hierarchy are used. I.e., how frequently 
 	do we match only on age and gq (expected low)
