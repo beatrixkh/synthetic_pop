@@ -27,7 +27,9 @@ gen_synth_pop/identify_pop_zero_tracts/identify_pop_zero_tracts.py
 
 ## Script Logic ##
 0. generate_underlying_structure.py
+	
 	ARGUMENTS: state (int), county (string), tract (string)
+	
 	INPUTS: 2010 Decennial Census tables P12A, P12B, P12C, P12D, P12E, P12F, 
 	P12G P5, P12H, PCT21, P21A, P29B, P29C, P29D, P29E, P29F, P29G
 	
@@ -56,7 +58,9 @@ gen_synth_pop/identify_pop_zero_tracts/identify_pop_zero_tracts.py
 	of such individuals from the 2010 Decennial census
 
 1. new_sample_single_year_age_distribution.py
+	
 	ARGUMENTS: state (int), county (string), tract (string)
+	
 	INPUTS: the 2-sex/23-age/7-race/2-ethnicity/2-gq/block-level geoid output by 
 	generate_underlying_structure.py; ACS community surveys from 2012-2017
 	
@@ -80,10 +84,12 @@ gen_synth_pop/identify_pop_zero_tracts/identify_pop_zero_tracts.py
 	underlying population structure table, sample an individual from the 
 	state-level ACS data, and assign to the individual from the underlying 
 	population structure the sampled:
-		- Specific age (Moving from 5-year bins to single-year)
-		- Specific race (Moving from 7 categories to 63; note the only change 
+        * Specific age (Moving from 5-year bins to single-year)
+
+        * Specific race (Moving from 7 categories to 63; note the only change 
 		here is to give multiracial individuals a specific racial mix)
-		- Specific relationship to head of household (Moving from 2 values to 
+		
+        * Specific relationship to head of household (Moving from 2 values to 
 		18; note this is only accurate to the degree that the courser values 
 		provided a good prior for this value)
 
@@ -103,9 +109,9 @@ gen_synth_pop/identify_pop_zero_tracts/identify_pop_zero_tracts.py
 
 5. synth_pop_diagnostics.py
 
-## FUNCTION LOGIC ##
+## Function Logic ##
 
-## TODOS ##
+## Todos ##
 0. "swarm_underlying_structure.py" ought to be renamed to "swarm_pop_synth.py"
 1. "new_sample_data.py" ought to be renamed to "sample_data.py"
 2. "new_process_decennial.py" ought to be renamed to "process_decennial.py"
