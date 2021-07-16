@@ -139,6 +139,6 @@ Runs a series of checks on the file outputs.
 	ethnicity, and gq status], try matching on [sex, race, ethnicity, and 
 	gq status] before trying [race, ethnicity, and gq status].
 
+## Acknowledgements ##
 
-
-
+This research was conducted with support and resources provided by the Cornell Institute of Social and Economic Research (CISER) at Cornell University, via the 2010 decennial census files they formatted and have available for download at https://archive.ciser.cornell.edu/explore/download-centers/census-2010-sf1
