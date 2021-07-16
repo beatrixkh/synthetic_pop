@@ -124,8 +124,6 @@ Runs a series of checks on the file outputs.
 
 ### 6. synth_pop_diagnostics.py ###
 
-## Function Logic ##
-
 ## Todos ##
 1. "swarm_underlying_structure.py" ought to be renamed to "swarm_pop_synth.py"
 2. "new_sample_data.py" ought to be renamed to "sample_data.py"
